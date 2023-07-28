@@ -1,0 +1,53 @@
+@page "/"
+
+<PageTitle>Events</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="Events" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+                <RadzenDataGrid @ref="grid0" ColumnWidth="200px" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+                            Data="@events" Count=count LoadData=@Grid0LoadData TItem="EventManager.Server.Models.EventManagerDb.Event" EditMode="Radzen.DataGridEditMode.Multiple">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Id" Title="Id" Width="100px" />
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Title" Title="Title">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Date" Title="Date">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Description" Title="Description">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Note" Title="Note">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Attending" Title="Attending" Width="150px">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Declined" Title="Declined" Width="150px">
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Maybe" Title="Maybe" Width="150px">
+                        </RadzenDataGridColumn>shib
+                        <RadzenDataGridColumn Width="160px" TItem="EventManager.Server.Models.EventManagerDb.Event" Property="Id" Title="Attendees">
+                            <Template Context="data">
+                                <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="info" class="m-1" Click=@(() => OpenAttendees(data.Id)) Text="Attendees" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Event" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                            <Template Context="_event">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(_event))" @onclick:stopPropagation="true" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                                          Shade="Shade.Lighter" Variant="Variant.Flat"
+                                          Click=@(args => GridDeleteButtonClick(args, _event)) @onclick:stopPropagation="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+
+                </RadzenDataGrid>
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>

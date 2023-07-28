@@ -1,0 +1,42 @@
+@page "/attendees"
+
+<PageTitle>Attendees</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0"> @(EventAttendees != null ? "" : "Contacts") </RadzenText>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+        <RadzenDataGrid @ref="grid0" ColumnWidth="170px" AllowColumnResize="true" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@attendees" Count=count LoadData=@Grid0LoadData  TItem="EventManager.Server.Models.EventManagerDb.Attendee" >
+            <Columns>
+                    <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Id" Title="Id" Width="70px">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Name" Title="Name">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Number" Title="Number">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Email" Title="Email">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="attendee">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(attendee))" @onclick:stopPropagation="true" />
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                            Shade="Shade.Lighter" Variant="Variant.Flat"
+                            Click=@(args => GridDeleteButtonClick(args, attendee)) @onclick:stopPropagation="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>
