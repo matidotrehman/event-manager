@@ -47,6 +47,7 @@ namespace EventManager.Client.Pages
             try
             {
                 await EventManagerDbService.UpdateAttendee(id:Id, attendee);
+                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Contact is updated" });
                 DialogService.Close(attendee);
             }
             catch (Exception ex)

@@ -4,6 +4,8 @@ using Radzen;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.AspNetCore.OData;
+using EventManager.Server.Interface;
+using EventManager.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -13,6 +15,7 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();
 builder.Services.AddScoped<ContextMenuService>();
+builder.Services.AddScoped<ITwilioMessageService, TwilioMessageService>();
 builder.Services.AddSingleton(sp =>
 {
     // Get the address that the app is currently running at

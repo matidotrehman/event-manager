@@ -177,6 +177,13 @@ namespace EventManager.Server.Controllers.EventManagerDb
                     return BadRequest();
                 }
 
+                var existingAttendee = this.context.Attendees.FirstOrDefault(a => a.Number == item.Number);
+                if (existingAttendee != null)
+                {
+                    // A duplicate number is found, return a specific status code to indicate conflict.
+                    return StatusCode(409, "An attendee with the same number already exists.");
+                }
+
                 this.OnAttendeeCreated(item);
                 this.context.Attendees.Add(item);
                 this.context.SaveChanges();

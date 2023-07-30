@@ -76,7 +76,10 @@ namespace EventManager.Client
             OnCreateAttendee(httpRequestMessage);
 
             var response = await httpClient.SendAsync(httpRequestMessage);
-
+            if(response.StatusCode == HttpStatusCode.Conflict)
+            {
+                throw new Exception("This number already exists");
+            }
             return await Radzen.HttpResponseMessageExtensions.ReadAsync<EventManager.Server.Models.EventManagerDb.Attendee>(response);
         }
 
@@ -170,6 +173,7 @@ namespace EventManager.Client
             OnCreateEvent(httpRequestMessage);
 
             var response = await httpClient.SendAsync(httpRequestMessage);
+
 
             return await Radzen.HttpResponseMessageExtensions.ReadAsync<EventManager.Server.Models.EventManagerDb.Event>(response);
         }

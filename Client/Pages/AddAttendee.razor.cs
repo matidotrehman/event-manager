@@ -43,6 +43,7 @@ namespace EventManager.Client.Pages
             attendee = new EventManager.Server.Models.EventManagerDb.Attendee();
         }
         protected bool errorVisible;
+        protected string errorMessage;
         protected EventManager.Server.Models.EventManagerDb.Attendee attendee;
 
         protected async Task FormSubmit()
@@ -50,6 +51,7 @@ namespace EventManager.Client.Pages
             try
             {
                 var resposne = await EventManagerDbService.CreateAttendee(attendee);
+                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"New contact is added" });
                 if (Event)
                 {
                     EventAttendee eventAttendee = new()
@@ -63,6 +65,7 @@ namespace EventManager.Client.Pages
             }
             catch (Exception ex)
             {
+                errorMessage = ex.Message;
                 errorVisible = true;
             }
         }

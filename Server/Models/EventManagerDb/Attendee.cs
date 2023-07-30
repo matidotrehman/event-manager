@@ -20,7 +20,7 @@ namespace EventManager.Server.Models.EventManagerDb
 
         [Required]
         public string Number { get; set; }
-
+        [EmailAddress]
         [Required]
         public string Email { get; set; }
         [NotMapped]

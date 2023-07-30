@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
 using EventManager.Server.Models.EventManagerDb;
+using EventManager.Client.Enums;
 
 namespace EventManager.Client.Pages
 {
@@ -41,6 +42,7 @@ namespace EventManager.Client.Pages
         public int? EventId { get; set; } = null;
 
         protected IEnumerable<EventManager.Server.Models.EventManagerDb.Attendee> attendees;
+        protected IEnumerable<EventAttendee> eventAtt;
 
         protected RadzenDataGrid<EventManager.Server.Models.EventManagerDb.Attendee> grid0;
         protected int count;
@@ -52,10 +54,14 @@ namespace EventManager.Client.Pages
                 grid0.IsLoading = true;
                 var result = await EventManagerDbService.GetAttendees(filter: $"{args.Filter}", orderby: $"{args.OrderBy}", top: args.Top, skip: args.Skip, count:args.Top != null && args.Skip != null);
                 attendees = result.Value.AsODataEnumerable();
+
                 if(EventAttendees != null)
                 {
                     attendees = EventAttendees;
+                    var resp = await EventManagerDbService.GetEventAttendees();
+                    eventAtt = resp.Value.ToList();
                 }
+
                 grid0.IsLoading = false;
                 StateHasChanged();
                 count = result.Count;
@@ -85,16 +91,37 @@ namespace EventManager.Client.Pages
             await grid0.Reload();
         }
 
+        public string GetStatusString(int attendeeId)
+        {
+            var statusId = this.eventAtt.FirstOrDefault(x => x.Event_id == EventId && x.Attendee_id == attendeeId).Status;
+            if (Enum.IsDefined(typeof(Statuses), statusId))
+            {
+                var enumNumber = (Statuses)statusId;
+                return enumNumber.ToString();
+            }
+
+            return string.Empty;
+        }
+
         protected async Task GridDeleteButtonClick(MouseEventArgs args, EventManager.Server.Models.EventManagerDb.Attendee attendee)
         {
             try
             {
                 if (await DialogService.Confirm("Are you sure you want to delete this record?") == true)
                 {
-                    var deleteResult = await EventManagerDbService.DeleteAttendee(id:attendee.Id);
+                    HttpResponseMessage deleteResult = null;
+                    if (EventAttendees == null)
+                    {
+                        deleteResult = await EventManagerDbService.DeleteAttendee(id: attendee.Id);
+                    }
+                    else
+                    {
+                        attendees.ToList().Remove(attendee);
+                    }
 
                     if (deleteResult != null)
                     {
+                        NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Contact deleted successfuly" });
                         await grid0.Reload();
                     }
                 }

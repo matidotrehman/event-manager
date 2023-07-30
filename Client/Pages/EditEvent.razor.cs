@@ -56,6 +56,7 @@ namespace EventManager.Client.Pages
             try
             {
                 await EventManagerDbService.UpdateEvent(id:Id, _event);
+                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Event is updated" });
 
                 List<EventAttendee> eventAttendees = new();
 

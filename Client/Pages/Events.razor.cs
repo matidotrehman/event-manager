@@ -83,6 +83,7 @@ namespace EventManager.Client.Pages
 
                     if (deleteResult != null)
                     {
+                        NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Event is deleted successfuly" });
                         await grid0.Reload();
                     }
                 }

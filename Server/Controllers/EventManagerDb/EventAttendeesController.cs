@@ -16,6 +16,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using DocumentFormat.OpenXml.Spreadsheet;
 using EventManager.Server.Models.EventManagerDb;
+using EventManager.Server.Services;
+using EventManager.Server.Interface;
+using EventManager.Server.Models;
 
 namespace EventManager.Server.Controllers.EventManagerDb
 {
@@ -23,10 +26,12 @@ namespace EventManager.Server.Controllers.EventManagerDb
     public partial class EventAttendeesController : ODataController
     {
         private EventManager.Server.Data.EventManagerDbContext context;
+        private ITwilioMessageService messageService;
 
-        public EventAttendeesController(EventManager.Server.Data.EventManagerDbContext context)
+        public EventAttendeesController(EventManager.Server.Data.EventManagerDbContext context, ITwilioMessageService twilioMessageService)
         {
             this.context = context;
+            messageService = twilioMessageService;
         }
 
     
@@ -185,7 +190,6 @@ namespace EventManager.Server.Controllers.EventManagerDb
 
                 var itemToReturn = this.context.EventAttendees.Where(i => i.Event_attendee_id == item.Event_attendee_id);
 
-                ;
 
                 this.OnAfterEventAttendeeCreated(item);
 
@@ -203,7 +207,7 @@ namespace EventManager.Server.Controllers.EventManagerDb
 
         [HttpPost("/odata/EventManagerDb/EventAttendees/AddList")]
         [EnableQuery(MaxExpansionDepth = 10, MaxAnyAllExpressionDepth = 10, MaxNodeCount = 1000)]
-        public IActionResult AddList([FromBody] List<EventManager.Server.Models.EventManagerDb.EventAttendee> items)
+        public async Task<IActionResult> AddList([FromBody] List<EventManager.Server.Models.EventManagerDb.EventAttendee> items)
         {
             try
             {
@@ -219,10 +223,27 @@ namespace EventManager.Server.Controllers.EventManagerDb
 
                 foreach (var item in items)
                 {
+                    var phone = this.context.Attendees.FirstOrDefault(x => x.Id == item.Attendee_id).Number;
+                    SmsRequest smsReq = new()
+                    {
+                        EventId = item.Event_id.ToString(),
+                        Message = "Are you coming to game? Please reply with yes or no.",
+                        PhoneNumber = phone
+                    };
+                    var response = await messageService.SendSmsAsync(smsReq);
+                    if (response)
+                    {
+                        item.Message_Sent = true;
+                        Event eventt = this.context.Events.FirstOrDefault(x => x.Id == item.Event_id);
+                        eventt.Maybe += 1;
+                        this.context.Events.Update(eventt);
+                    }
                     this.OnEventAttendeeCreated(item);
                     this.context.EventAttendees.Add(item);
                 }
                 this.context.SaveChanges();
+
+               
 
                 List<int> insertedIds = items.Select(i => i.Event_attendee_id).ToList();
 
@@ -260,7 +281,7 @@ namespace EventManager.Server.Controllers.EventManagerDb
         }
 
         [HttpPost("/odata/EventManagerDb/EventAttendees/UpdateList")]
-        public IActionResult UpdateList([FromBody] List<EventManager.Server.Models.EventManagerDb.EventAttendee> items)
+        public async Task<IActionResult> UpdateList([FromBody] List<EventManager.Server.Models.EventManagerDb.EventAttendee> items)
         {
             try
             {
@@ -273,16 +294,41 @@ namespace EventManager.Server.Controllers.EventManagerDb
                 {
                     return BadRequest("The list of EventAttendees is empty.");
                 }
-                var rmItems = this.context.EventAttendees.Where(a => a.Event_id == items.FirstOrDefault().Event_id).ToList();
 
-                // delete previous values first
-                this.context.EventAttendees.RemoveRange(rmItems);
-                this.context.SaveChanges();
+                var existingEventIds = this.context.EventAttendees.Select(a => a.Event_id).ToList();
+                var incomingEventIds = items.Select(a => a.Event_id).ToList();
+
+                // Delete missing items from DB
+                var eventsToDelete = this.context.EventAttendees
+                                            .Where(a => !incomingEventIds.Contains(a.Event_id))
+                                            .ToList();
+
+                this.context.EventAttendees.RemoveRange(eventsToDelete);
 
                 foreach (var item in items)
                 {
-                    this.OnEventAttendeeCreated(item);
-                    this.context.EventAttendees.Add(item);
+                    var existingItem = this.context.EventAttendees.FirstOrDefault(a => a.Event_attendee_id == item.Event_attendee_id);
+                    if (existingItem == null)
+                    {
+                        var phone = this.context.Attendees.FirstOrDefault(x => x.Id == item.Attendee_id).Number;
+                        SmsRequest smsReq = new()
+                        {
+                            EventId = item.Event_id.ToString(),
+                            Message = "Are you coming to game? Please reply with yes or no.",
+                            PhoneNumber = phone
+                        };
+                        var response = await messageService.SendSmsAsync(smsReq);
+                        if (response)
+                        {
+                            item.Message_Sent = true;
+                            Event eventt = this.context.Events.FirstOrDefault(x => x.Id == item.Event_id);
+                            eventt.Maybe += 1;
+                            this.context.Events.Update(eventt);
+                        }
+
+                        this.OnEventAttendeeCreated(item);
+                        this.context.EventAttendees.Add(item);
+                    }
                 }
                 this.context.SaveChanges();
 

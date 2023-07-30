@@ -17,14 +17,19 @@
         <RadzenDataGrid @ref="grid0" ColumnWidth="170px" AllowColumnResize="true" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
             Data="@attendees" Count=count LoadData=@Grid0LoadData  TItem="EventManager.Server.Models.EventManagerDb.Attendee" >
             <Columns>
-                    <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Id" Title="Id" Width="70px">
+                    <RadzenDataGridColumn Visible="EventId == null" TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Id" Title="Id" Width="70px">
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Name" Title="Name">
+                    <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Name" Title="Name" Width="80px">
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Number" Title="Number">
+                    <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Number" Title="Number" Width="100px">
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Property="Email" Title="Email">
                 </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Visible="EventId != null" TItem="EventManager.Server.Models.EventManagerDb.Attendee" Title="Status" Width="100px">
+                        <Template Context="attendee">
+                            @GetStatusString(attendee.Id)
+                        </Template>
+                    </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="EventManager.Server.Models.EventManagerDb.Attendee" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
                     <Template Context="attendee">
                             <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(attendee))" @onclick:stopPropagation="true" />

@@ -62,6 +62,7 @@ namespace EventManager.Client.Pages
                     eventAttendees.Add(eventAttendee);
                 });
                 var res = await EventManagerDbService.CreateEventAttendees(eventAttendees.AsQueryable());
+                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Event is created successfuly" });
                 DialogService.Close(_event);
             }
             catch (Exception ex)
