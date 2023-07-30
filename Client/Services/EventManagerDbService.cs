@@ -300,6 +300,17 @@ namespace EventManager.Client
             return await httpClient.SendAsync(httpRequestMessage);
         }
 
+        public async Task<HttpResponseMessage> DeleteEventAttendeeByEventId(int eventId = default(int))
+        {
+            var uri = new Uri(baseUri, $"EventAttendeesBtEventId(Event_Id={eventId})");
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
+
+            OnDeleteEventAttendee(httpRequestMessage);
+
+            return await httpClient.SendAsync(httpRequestMessage);
+        }
+
         partial void OnGetEventAttendeeByEventAttendeeId(HttpRequestMessage requestMessage);
 
         public async Task<EventManager.Server.Models.EventManagerDb.EventAttendee> GetEventAttendeeByEventAttendeeId(string expand = default(string), int eventAttendeeId = default(int))

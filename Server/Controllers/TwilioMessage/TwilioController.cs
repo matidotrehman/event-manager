@@ -21,52 +21,65 @@ namespace EventManager.Server.Controllers.TwilioMessage
         [HttpPost("receive-sms")]
         public async Task<IActionResult> ReceiveSms()
         {
-            var requestBody = Request.Form["Body"].ToString();
-            var senderPhoneNumber = Request.Form["From"].ToString();
-
-            var attendee = this.context.Attendees.FirstOrDefault(x => x.Number == senderPhoneNumber);
-            if(attendee != null)
+            try
             {
-                var response = new MessagingResponse();
+                var requestBody = Request.Form["Body"].ToString();
+                var senderPhoneNumber = Request.Form["From"].ToString();
 
-
-                var eventAttendee = this.context.EventAttendees.LastOrDefault(x => x.Attendee_id == attendee.Id);
-
-                if (!eventAttendee.Response_Received)
+                var attendee = this.context.Attendees.FirstOrDefault(x => x.Number == senderPhoneNumber);
+                if (attendee != null)
                 {
-                    string lowercaseResponse = requestBody.ToLower();
+                    var response = new MessagingResponse();
 
-                    if (lowercaseResponse.Contains("yes") || lowercaseResponse == "y")
-                    {
-                        eventAttendee.Status = 1;
-                        eventAttendee.Response_Received = true;
-                        response.Message("Thank you for your response!");
-                    }
-                    else if (lowercaseResponse.Contains("no") || lowercaseResponse == "n")
-                    {
-                        eventAttendee.Status = 2;
-                        eventAttendee.Response_Received = true;
-                        response.Message("Thank you for your response!");
-                    }
-                    else
-                    {
-                        // If the response doesn't match "Yes" or "No," handle it as needed
-                        response.Message("Invalid response. Please reply with either 'Yes' or 'No'.");
-                    }
 
-                    this.context.EventAttendees.Update(eventAttendee);
-                    this.context.SaveChanges();
+                    var eventAttendee = this.context.EventAttendees.OrderBy(x => x.Event_attendee_id).LastOrDefault(x => x.Attendee_id == attendee.Id);
 
-                    return new ContentResult
+                    if (!eventAttendee.Response_Received)
                     {
-                        Content = response.ToString(),
-                        ContentType = "application/xml",
-                        StatusCode = 200
-                    };
+                        var evnt = this.context.Events.FirstOrDefault(x => x.Id == eventAttendee.Event_id);
+                        string lowercaseResponse = requestBody.ToLower();
+
+                        if (lowercaseResponse.Contains("yes") || lowercaseResponse == "y")
+                        {
+                            evnt.Attending += 1;
+                            eventAttendee.User_Response = requestBody;
+                            eventAttendee.Status = 1;
+                            eventAttendee.Response_Received = true;
+                            response.Message("Thank you for your response!");
+                        }
+                        else if (lowercaseResponse.Contains("no") || lowercaseResponse == "n")
+                        {
+                            evnt.Declined += 1;
+                            eventAttendee.User_Response = requestBody;
+                            eventAttendee.Status = 2;
+                            eventAttendee.Response_Received = true;
+                            response.Message("Thank you for your response!");
+                        }
+                        else
+                        {
+                            // If the response doesn't match "Yes" or "No," handle it as needed
+                            response.Message("Invalid response. Please reply with either 'Yes' or 'No'.");
+                        }
+
+                        this.context.EventAttendees.Update(eventAttendee);
+                        this.context.Events.Update(evnt);
+                        this.context.SaveChanges();
+
+                        return new ContentResult
+                        {
+                            Content = response.ToString(),
+                            ContentType = "application/xml",
+                            StatusCode = 200
+                        };
+                    }
                 }
-            }
 
-            return Ok();
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

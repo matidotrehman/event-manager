@@ -97,6 +97,43 @@ namespace EventManager.Server.Controllers.EventManagerDb
             }
         }
 
+        [HttpDelete("/odata/EventManagerDb/EventAttendeesBtEventId(Event_id={Event_id})")]
+        public IActionResult DeleteEventAttendeeByEventId(int Event_Id)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var evnt = this.context.Events.FirstOrDefault(x => x.Id == Event_Id);
+                evnt.Attending = 0;
+                evnt.Declined = 0;
+                evnt.Maybe = 0;
+                this.context.Events.Update(evnt);
+
+                var item = this.context.EventAttendees
+                    .Where(i => i.Event_id == Event_Id)
+                    .ToList();
+
+                if (item == null)
+                {
+                    return Ok();
+                }
+                this.context.EventAttendees.RemoveRange(item);
+                this.context.SaveChanges();
+
+                return new NoContentResult();
+
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
         partial void OnEventAttendeeUpdated(EventManager.Server.Models.EventManagerDb.EventAttendee item);
         partial void OnAfterEventAttendeeUpdated(EventManager.Server.Models.EventManagerDb.EventAttendee item);
 
@@ -290,24 +327,27 @@ namespace EventManager.Server.Controllers.EventManagerDb
                     return BadRequest(ModelState);
                 }
 
-                if (items == null || items.Count == 0)
+                var existingEventAttendee = this.context.EventAttendees.Where(x => x.Event_id == items.FirstOrDefault().Event_id).ToList();
+
+                //// Delete missing items from DB
+                var eventsToDelete = new List<EventAttendee>();
+
+
+                foreach (var item in existingEventAttendee)
                 {
-                    return BadRequest("The list of EventAttendees is empty.");
+                    var existingItem = items.FirstOrDefault(a => a.Event_id == item.Event_id && a.Attendee_id == item.Attendee_id);
+                    if(existingItem == null)
+                    {
+                        eventsToDelete.Add(item);
+                    }
                 }
 
-                var existingEventIds = this.context.EventAttendees.Select(a => a.Event_id).ToList();
-                var incomingEventIds = items.Select(a => a.Event_id).ToList();
-
-                // Delete missing items from DB
-                var eventsToDelete = this.context.EventAttendees
-                                            .Where(a => !incomingEventIds.Contains(a.Event_id))
-                                            .ToList();
 
                 this.context.EventAttendees.RemoveRange(eventsToDelete);
 
                 foreach (var item in items)
                 {
-                    var existingItem = this.context.EventAttendees.FirstOrDefault(a => a.Event_attendee_id == item.Event_attendee_id);
+                    var existingItem = this.context.EventAttendees.FirstOrDefault(a => a.Event_id == item.Event_id && a.Attendee_id == item.Attendee_id);
                     if (existingItem == null)
                     {
                         var phone = this.context.Attendees.FirstOrDefault(x => x.Id == item.Attendee_id).Number;

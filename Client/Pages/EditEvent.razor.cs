@@ -56,7 +56,6 @@ namespace EventManager.Client.Pages
             try
             {
                 await EventManagerDbService.UpdateEvent(id:Id, _event);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Event is updated" });
 
                 List<EventAttendee> eventAttendees = new();
 
@@ -69,7 +68,16 @@ namespace EventManager.Client.Pages
                     };
                     eventAttendees.Add(eventAttendee);
                 });
-                var response = await EventManagerDbService.UpdateEventAttendee(eventAttendees.AsQueryable());
+                if(eventAttendees.Count == 0)
+                {
+
+                    await EventManagerDbService.DeleteEventAttendeeByEventId(Id);
+                }
+                else
+                {
+                    var response = await EventManagerDbService.UpdateEventAttendee(eventAttendees.AsQueryable());
+                }
+                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Event is updated" });
                 DialogService.Close(_event);
             }
             catch (Exception ex)

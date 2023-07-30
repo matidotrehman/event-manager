@@ -21,6 +21,7 @@ namespace EventManager.Server.Models.EventManagerDb
         public int Attendee_id { get; set; }
         public bool Message_Sent { get; set; }
         public bool Response_Received { get; set; }
+        public string User_Response { get; set; } = null;
         public int Status { get; set; }
 
     }
