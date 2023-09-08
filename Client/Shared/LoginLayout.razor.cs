@@ -10,9 +10,10 @@ using Microsoft.JSInterop;
 using Radzen;
 using Radzen.Blazor;
 
+
 namespace EventManager.Client.Shared
 {
-    public partial class MainLayout
+    public partial class LoginLayout
     {
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
@@ -32,22 +33,7 @@ namespace EventManager.Client.Shared
         [Inject]
         protected NotificationService NotificationService { get; set; }
 
-        private bool sidebarExpanded = true;
-
         [Inject]
         protected SecurityService Security { get; set; }
-
-        void SidebarToggleClick()
-        {
-            sidebarExpanded = !sidebarExpanded;
-        }
-
-        protected void ProfileMenuClick(RadzenProfileMenuItem args)
-        {
-            if (args.Value == "Logout")
-            {
-                Security.Logout();
-            }
-        }
     }
 }

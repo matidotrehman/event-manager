@@ -51,6 +51,9 @@ namespace EventManager.Client.Pages
         IEnumerable<string> values = new List<string>();
         RadzenDropDownDataGrid<IEnumerable<string>> grid;
 
+        [Inject]
+        protected SecurityService Security { get; set; }
+
         protected async Task FormSubmit()
         {
             try

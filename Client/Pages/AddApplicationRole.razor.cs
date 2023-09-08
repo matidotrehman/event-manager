@@ -10,7 +10,7 @@ using Radzen.Blazor;
 
 namespace EventManager.Client.Pages
 {
-    public partial class EditAttendee
+    public partial class AddApplicationRole
     {
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
@@ -29,37 +29,35 @@ namespace EventManager.Client.Pages
 
         [Inject]
         protected NotificationService NotificationService { get; set; }
-        [Inject]
-        public EventManagerDbService EventManagerDbService { get; set; }
 
-        [Parameter]
-        public int Id { get; set; }
-
-        protected override async Task OnInitializedAsync()
-        {
-            attendee = await EventManagerDbService.GetAttendeeById(id:Id);
-        }
+        protected EventManager.Server.Models.ApplicationRole role;
+        protected string error;
         protected bool errorVisible;
-        protected EventManager.Server.Models.EventManagerDb.Attendee attendee;
 
         [Inject]
         protected SecurityService Security { get; set; }
 
-        protected async Task FormSubmit()
+        protected override async Task OnInitializedAsync()
+        {
+            role = new EventManager.Server.Models.ApplicationRole();
+        }
+
+        protected async Task FormSubmit(EventManager.Server.Models.ApplicationRole role)
         {
             try
             {
-                await EventManagerDbService.UpdateAttendee(id:Id, attendee);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Contact is updated" });
-                DialogService.Close(attendee);
+                await Security.CreateRole(role);
+
+                DialogService.Close(null);
             }
             catch (Exception ex)
             {
                 errorVisible = true;
+                error = ex.Message;
             }
         }
 
-        protected async Task CancelButtonClick(MouseEventArgs args)
+        protected async Task CancelClick()
         {
             DialogService.Close(null);
         }

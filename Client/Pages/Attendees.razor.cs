@@ -47,6 +47,9 @@ namespace EventManager.Client.Pages
         protected RadzenDataGrid<EventManager.Server.Models.EventManagerDb.Attendee> grid0;
         protected int count;
 
+        [Inject]
+        protected SecurityService Security { get; set; }
+
         protected async Task Grid0LoadData(LoadDataArgs args)
         {
             try

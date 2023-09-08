@@ -10,7 +10,7 @@ using Radzen.Blazor;
 
 namespace EventManager.Client.Pages
 {
-    public partial class EditAttendee
+    public partial class AddApplicationUser
     {
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
@@ -29,37 +29,39 @@ namespace EventManager.Client.Pages
 
         [Inject]
         protected NotificationService NotificationService { get; set; }
-        [Inject]
-        public EventManagerDbService EventManagerDbService { get; set; }
 
-        [Parameter]
-        public int Id { get; set; }
-
-        protected override async Task OnInitializedAsync()
-        {
-            attendee = await EventManagerDbService.GetAttendeeById(id:Id);
-        }
+        protected IEnumerable<EventManager.Server.Models.ApplicationRole> roles;
+        protected EventManager.Server.Models.ApplicationUser user;
+        protected IEnumerable<string> userRoles = Enumerable.Empty<string>();
+        protected string error;
         protected bool errorVisible;
-        protected EventManager.Server.Models.EventManagerDb.Attendee attendee;
 
         [Inject]
         protected SecurityService Security { get; set; }
 
-        protected async Task FormSubmit()
+        protected override async Task OnInitializedAsync()
+        {
+            user = new EventManager.Server.Models.ApplicationUser();
+
+            roles = await Security.GetRoles();
+        }
+
+        protected async Task FormSubmit(EventManager.Server.Models.ApplicationUser user)
         {
             try
             {
-                await EventManagerDbService.UpdateAttendee(id:Id, attendee);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Contact is updated" });
-                DialogService.Close(attendee);
+                user.Roles = roles.Where(role => userRoles.Contains(role.Id)).ToList();
+                await Security.CreateUser(user);
+                DialogService.Close(null);
             }
             catch (Exception ex)
             {
                 errorVisible = true;
+                error = ex.Message;
             }
         }
 
-        protected async Task CancelButtonClick(MouseEventArgs args)
+        protected async Task CancelClick()
         {
             DialogService.Close(null);
         }

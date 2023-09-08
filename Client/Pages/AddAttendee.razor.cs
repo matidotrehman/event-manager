@@ -46,6 +46,9 @@ namespace EventManager.Client.Pages
         protected string errorMessage;
         protected EventManager.Server.Models.EventManagerDb.Attendee attendee;
 
+        [Inject]
+        protected SecurityService Security { get; set; }
+
         protected async Task FormSubmit()
         {
             try

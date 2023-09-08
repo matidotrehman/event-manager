@@ -43,6 +43,9 @@ namespace EventManager.Client.Pages
         protected int count;
         protected bool loader = false;
 
+        [Inject]
+        protected SecurityService Security { get; set; }
+
 
         protected async Task Grid0LoadData(LoadDataArgs args)
         {

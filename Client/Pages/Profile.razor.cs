@@ -10,7 +10,7 @@ using Radzen.Blazor;
 
 namespace EventManager.Client.Pages
 {
-    public partial class EditAttendee
+    public partial class Profile
     {
         [Inject]
         protected IJSRuntime JSRuntime { get; set; }
@@ -29,39 +29,35 @@ namespace EventManager.Client.Pages
 
         [Inject]
         protected NotificationService NotificationService { get; set; }
-        [Inject]
-        public EventManagerDbService EventManagerDbService { get; set; }
 
-        [Parameter]
-        public int Id { get; set; }
-
-        protected override async Task OnInitializedAsync()
-        {
-            attendee = await EventManagerDbService.GetAttendeeById(id:Id);
-        }
+        protected string oldPassword = "";
+        protected string newPassword = "";
+        protected string confirmPassword = "";
+        protected EventManager.Server.Models.ApplicationUser user;
+        protected string error;
         protected bool errorVisible;
-        protected EventManager.Server.Models.EventManagerDb.Attendee attendee;
+        protected bool successVisible;
 
         [Inject]
         protected SecurityService Security { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            user = await Security.GetUserById($"{Security.User.Id}");
+        }
 
         protected async Task FormSubmit()
         {
             try
             {
-                await EventManagerDbService.UpdateAttendee(id:Id, attendee);
-                NotificationService.Notify(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = $"Success", Detail = $"Contact is updated" });
-                DialogService.Close(attendee);
+                await Security.ChangePassword(oldPassword, newPassword);
+                successVisible = true;
             }
             catch (Exception ex)
             {
                 errorVisible = true;
+                error = ex.Message;
             }
-        }
-
-        protected async Task CancelButtonClick(MouseEventArgs args)
-        {
-            DialogService.Close(null);
         }
     }
 }
